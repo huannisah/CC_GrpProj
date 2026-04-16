@@ -2,6 +2,7 @@ services:
   - type: web
     name: careerai-saas
     runtime: python
+    pythonVersion: "3.11.9"  
     buildCommand: pip install -r requirements.txt
     startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -14,7 +15,7 @@ services:
       - key: DATABRICKS_HTTP_PATH
         sync: false
       - key: DATABRICKS_CATALOG
-        value: main
+        value: workspace
       - key: DATABRICKS_SCHEMA
         value: careerai
       - key: SECRET_KEY
