@@ -1,10 +1,28 @@
+# Environment variables — NEVER commit this
 .env
+
+# Python cache files
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Temporary upload folder
 uploads/
+
+# macOS system files
 .DS_Store
+
+# IDE files
+.vscode/
+.idea/
+
+# Build artifacts
 *.egg-info/
 dist/
 build/
-venv/
-.venv/
