@@ -834,3 +834,50 @@
      .sidebar { position: static; }
      .content-panel { padding: 1.5rem; }
    }
+
+      /* ── Prose table styles (ATS Score Breakdown, Job Analysis, etc.) ── */
+    .prose table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      font-size: 0.875rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .prose table thead {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .prose table th {
+      padding: 0.65rem 1rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-sec);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .prose table td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .prose table tr:last-child td {
+      border-bottom: none;
+      font-weight: 700;          /* bold the TOTAL row */
+    }
+
+    .prose table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Make the weighted score column right-aligned */
+    .prose table td:last-child,
+    .prose table th:last-child {
+      text-align: right;
+    }

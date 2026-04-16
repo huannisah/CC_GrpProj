@@ -3,9 +3,20 @@ schemas.py
 
 Pydantic request/response models for all REST API endpoints.
 FastAPI uses these for automatic validation and Swagger documentation.
+
+Changes for Options 1, 2, 4:
+  - ATSScoreResponse: adds optional benchmark_avg, benchmark_percentile,
+    benchmark_total. Optional means existing API clients won't break — they
+    simply receive null for fields they don't check.
+  - RemoteItem: new model for Option 2 remote work breakdown.
+  - ExperienceItem: new model for Option 2 experience distribution.
+  - SkillTrendItem: new model for Option 1 Delta time travel keyword trends.
+  - MarketTrendsResponse: adds remote_breakdown, experience_distribution,
+    skill_trends (all default to empty list if unavailable).
 """
 
 from pydantic import BaseModel, Field
+from typing import Optional
 
 
 # ── Request Models ─────────────────────────────────────────────────────────────
@@ -44,6 +55,22 @@ class ATSScoreResponse(BaseModel):
     score: float = Field(..., description="ATS compatibility score from 1.0 to 10.0 in 0.5 increments")
     feedback: str = Field(..., description="Detailed feedback on the resume")
 
+    # Option 4: crowd-sourced benchmark fields.
+    # All Optional — they are None if Databricks has no data yet.
+    # Over time, as more users run ATS scoring, these become increasingly meaningful.
+    benchmark_avg: Optional[float] = Field(
+        None,
+        description="Global average ATS score across all Databricks submissions"
+    )
+    benchmark_percentile: Optional[int] = Field(
+        None,
+        description="Percentage of past submissions this score beats (0–100)"
+    )
+    benchmark_total: Optional[int] = Field(
+        None,
+        description="Total number of ATS scores recorded in Databricks"
+    )
+
 
 class FineTuneResponse(BaseModel):
     optimized_resume: str = Field(..., description="ATS-optimised version of the resume")
@@ -79,6 +106,32 @@ class SeniorityItem(BaseModel):
     count: int
 
 
+# Option 2: remote work type distribution
+class RemoteItem(BaseModel):
+    remote_type: str = Field(..., description="e.g. 'Remote', 'Hybrid', 'On-site', 'Not specified'")
+    count: int
+
+
+# Option 2: average years of experience required, broken down by seniority
+class ExperienceItem(BaseModel):
+    seniority: str = Field(..., description="e.g. 'Entry', 'Mid', 'Senior', 'Lead'")
+    avg_years: float = Field(..., description="Average minimum years of experience required")
+    count: int = Field(..., description="Number of submissions in this seniority bucket")
+
+
+# Option 1: Delta Lake time travel keyword trend item
+class SkillTrendItem(BaseModel):
+    keyword: str
+    current_count: int = Field(..., description="Current occurrence count in keyword_counts table")
+    past_count: int = Field(..., description="Count from Delta snapshot N days ago (0 if table too new)")
+    change: int = Field(..., description="current_count minus past_count")
+    pct_change: float = Field(..., description="Percentage change from past to current")
+    direction: str = Field(
+        ...,
+        description="'up' (rising), 'down' (falling), 'stable', or 'new' (no historical baseline)"
+    )
+
+
 class MarketTrendsResponse(BaseModel):
     total_submissions: int = Field(..., description="Total number of job descriptions analysed")
     top_technical_skills: list[SkillItem]
@@ -86,3 +139,19 @@ class MarketTrendsResponse(BaseModel):
     top_keywords: list[KeywordItem]
     industry_breakdown: list[IndustryItem]
     seniority_breakdown: list[SeniorityItem]
+
+    # Option 2: richer submission analytics (default empty list if Databricks unavailable)
+    remote_breakdown: list[RemoteItem] = Field(
+        default=[],
+        description="Distribution of remote work types across all submitted job descriptions"
+    )
+    experience_distribution: list[ExperienceItem] = Field(
+        default=[],
+        description="Average required years of experience by seniority level"
+    )
+
+    # Option 1: Delta Lake time travel (default empty list if Databricks unavailable or table too new)
+    skill_trends: list[SkillTrendItem] = Field(
+        default=[],
+        description="Keyword trend comparison using Delta Lake time travel (7-day window)"
+    )

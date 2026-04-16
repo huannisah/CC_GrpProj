@@ -12,11 +12,11 @@ class Config:
     # Local upload folder for temporary file storage
     UPLOAD_FOLDER = 'uploads'
 
-    # OpenAI configuration — NEVER hardcode API keys
+    # OpenAI configuration
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
     OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
 
-    # Databricks configuration — all values come from environment variables
+    # Databricks configuration
     DATABRICKS_HOST = os.environ.get('DATABRICKS_HOST', '')
     DATABRICKS_TOKEN = os.environ.get('DATABRICKS_TOKEN', '')
     DATABRICKS_HTTP_PATH = os.environ.get('DATABRICKS_HTTP_PATH', '')

@@ -14,3 +14,4 @@ python-dotenv==1.0.1
 mistune==3.0.2
 itsdangerous==2.2.0
 gunicorn
+markdown==3.6

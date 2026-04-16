@@ -214,9 +214,13 @@ def extract_market_insights(job_description_text: str) -> Optional[dict]:
     """
     Extract structured skill/keyword data from a job description
     for anonymous aggregation into the market trends dashboard.
-    Returns a dict with keys: job_title, industry, seniority_level,
-    technical_skills, soft_skills, keywords.
-    Returns None if extraction fails.
+
+    Option 2 additions: now also extracts remote_type, required_years_min,
+    and salary_range from the job description. These are stored in
+    job_submissions and exposed via get_remote_breakdown() and
+    get_experience_distribution() on the dashboard.
+
+    Returns a dict with all keys, or None if extraction fails.
     """
     try:
         response = _get_client().chat.completions.create(
@@ -227,34 +231,41 @@ def extract_market_insights(job_description_text: str) -> Optional[dict]:
                     "content": (
                         "You are a job market data extractor. Extract structured information "
                         "from job descriptions for market trend analysis. "
-                        "Respond ONLY with a valid JSON object, no markdown, no explanation."
+                        "Respond ONLY with a valid JSON object, no markdown, no explanation, "
+                        "no backticks."
                     )
                 },
                 {
                     "role": "user",
                     "content": (
                         f"Job Description:\n{job_description_text}\n\n"
-                        "Extract the following and return as JSON only:\n"
+                        "Extract the following and return as a single JSON object only:\n"
                         "{\n"
-                        '  "job_title": "string (best guess at job title)",\n'
-                        '  "industry": "string (e.g. Tech, Finance, Healthcare)",\n'
-                        '  "seniority_level": "string (Entry/Mid/Senior/Lead/Executive)",\n'
-                        '  "technical_skills": ["list", "of", "technical", "skills"],\n'
-                        '  "soft_skills": ["list", "of", "soft", "skills"],\n'
-                        '  "keywords": ["top", "10", "keywords"]\n'
+                        '  "job_title": "string — best guess at the job title",\n'
+                        '  "industry": "string — one of: Tech, Finance, Healthcare, Education, Marketing, Retail, Manufacturing, Consulting, Legal, Other",\n'
+                        '  "seniority_level": "string — one of: Entry, Mid, Senior, Lead, Executive",\n'
+                        '  "remote_type": "string — one of: Remote, Hybrid, On-site, Not specified",\n'
+                        '  "required_years_min": null or integer — minimum years of experience explicitly required (null if not stated),\n'
+                        '  "salary_range": null or string — salary range if mentioned (e.g. "$80,000 - $120,000"), null if not mentioned,\n'
+                        '  "technical_skills": ["array", "of", "technical", "skill", "strings"],\n'
+                        '  "soft_skills": ["array", "of", "soft", "skill", "strings"],\n'
+                        '  "keywords": ["top", "10", "keyword", "strings"]\n'
                         "}"
                     )
                 }
             ],
-            temperature=0.1,
+            temperature=0.1,  # Low temperature for deterministic structured extraction
         )
         raw = response.choices[0].message.content.strip()
-        # Strip markdown fences if the model wraps its response in ```json ... ```
+
+        # Strip markdown code fences if the model wraps its response in ```json ... ```
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
+
         return json.loads(raw.strip())
+
     except json.JSONDecodeError:
         print("Warning: Could not parse market insights JSON from OpenAI response")
         return None

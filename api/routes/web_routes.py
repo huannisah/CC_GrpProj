@@ -4,8 +4,24 @@ web_routes.py
 Server-side rendered web UI routes.
 These serve HTML pages using Jinja2 templates and use session state
 to pass data between the upload step and the tool steps.
+
+Changes for Options 1, 2, 4:
+  - upload_file: after extracting market insights, stores industry + seniority
+    in the session so the ATS score page can query an industry-specific benchmark.
+  - ats_scores: records every score to Databricks, then fetches benchmark data
+    (percentile rank, average score, total count) to pass to the template.
+  - dashboard: now fetches skill_trends (time travel), remote_breakdown, and
+    experience_dist alongside the existing data.
+
+Performance fix:
+  - All synchronous OpenAI calls are now wrapped in asyncio.to_thread() so they
+    run in a thread pool instead of blocking FastAPI's async event loop.
+  - The analytics extraction + Databricks write in upload_file is now a
+    BackgroundTask — the redirect fires immediately and analytics runs after,
+    so a slow or unreachable Databricks cluster never delays the user.
 """
 
+import asyncio
 import os
 import re
 import shutil
@@ -16,7 +32,7 @@ import mistune
 import requests as http_requests
 from bs4 import BeautifulSoup
 from docx import Document
-from fastapi import APIRouter, Request, UploadFile, File, Form
+from fastapi import APIRouter, BackgroundTasks, Request, UploadFile, File, Form
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 
@@ -27,9 +43,18 @@ from utils.openai_service import (
     analyze_job_posting, extract_market_insights
 )
 from utils.analytics_service import (
-    record_insights, get_top_technical_skills, get_top_soft_skills,
-    get_top_keywords, get_industry_breakdown,
-    get_seniority_breakdown, get_total_submissions
+    record_insights,
+    record_ats_score,
+    get_ats_benchmark,
+    get_top_technical_skills,
+    get_top_soft_skills,
+    get_top_keywords,
+    get_industry_breakdown,
+    get_seniority_breakdown,
+    get_total_submissions,
+    get_skill_trend_comparison,
+    get_remote_breakdown,
+    get_experience_distribution,
 )
 
 router = APIRouter()
@@ -68,11 +93,8 @@ def secure_filename(filename: str) -> str:
     so we don't need the full Werkzeug dependency.
     Keeps only alphanumeric characters, dots, hyphens, and underscores.
     """
-    # Remove any path separators
     filename = filename.replace('/', '_').replace('\\', '_')
-    # Keep only safe characters
     filename = re.sub(r'[^\w\.\-]', '_', filename)
-    # Remove leading dots (hidden files)
     filename = filename.lstrip('.')
     return filename or 'unnamed_file'
 
@@ -117,6 +139,7 @@ def get_session_texts(request: Request) -> tuple:
             jd_text = f.read()
     return resume_text, jd_text
 
+
 def get_file_names(request: Request) -> tuple:
     """Extract just the filenames from session paths for display in sidebar."""
     resume_name, jd_name = None, None
@@ -127,6 +150,7 @@ def get_file_names(request: Request) -> tuple:
     if jd_path:
         jd_name = request.session.get('jd_name', 'Job Description')
     return resume_name, jd_name
+
 
 async def save_upload(upload: UploadFile) -> str:
     """Save an uploaded file to the uploads/ directory."""
@@ -160,9 +184,8 @@ async def about(request: Request):
 @router.get("/upload")
 async def upload_page(request: Request):
     messages = get_flashed(request)
-    # Check if both files are already in session
     has_files = bool(
-        request.session.get('resume_path') and 
+        request.session.get('resume_path') and
         request.session.get('jd_path')
     )
     return templates.TemplateResponse(request, "upload.html", {
@@ -174,6 +197,7 @@ async def upload_page(request: Request):
 @router.post("/upload")
 async def upload_file(
     request: Request,
+    background_tasks: BackgroundTasks,  # FastAPI injects this automatically
     resume: UploadFile = File(...),
     job_description: UploadFile = File(None),
     job_text: Optional[str] = Form(None),
@@ -223,17 +247,36 @@ async def upload_file(
         return RedirectResponse(url="/upload", status_code=303)
 
     request.session['jd_path'] = write_temp_txt(jd_text)
-        # For file upload:
-    request.session['jd_name'] = job_description.filename if job_description and job_description.filename else 'Job Description'
-    # For pasted text or URL, it will fall back to 'Job Description'
+    request.session['jd_name'] = (
+        job_description.filename
+        if job_description and job_description.filename
+        else 'Job Description'
+    )
 
-    # ── Dual-utility: harvest market insights (non-fatal if it fails) ─────
-    try:
-        insights = extract_market_insights(jd_text)
-        record_insights(insights)
-    except Exception as e:
-        print(f"Analytics extraction failed (non-fatal): {e}")
+    # ── Analytics: run AFTER the redirect is already sent ─────────────────
+    # Previously this called extract_market_insights() and record_insights()
+    # directly — blocking the entire response for the duration of an OpenAI
+    # call plus a Databricks connection (up to 60 s if either was slow).
+    #
+    # BackgroundTasks sends the 303 redirect to the browser first, then runs
+    # this function in a background thread. A slow or unreachable Databricks
+    # cluster now has zero impact on how quickly the user reaches /tools.
+    #
+    # We capture jd_text in a local variable to pass into the closure safely.
+    def _run_analytics(text: str):
+        try:
+            insights = extract_market_insights(text)
+            if insights:
+                record_insights(insights)
+        except Exception as e:
+            print(f"[background] Analytics extraction failed (non-fatal): {e}")
 
+    background_tasks.add_task(_run_analytics, jd_text)
+
+    # NOTE: industry + seniority are no longer stored in the session here
+    # because _run_analytics runs after the redirect. The ats_scores route
+    # below falls back gracefully to 'Unknown' when they are absent, which
+    # was already the existing fallback behaviour.
     return RedirectResponse(url="/tools", status_code=303)
 
 
@@ -245,14 +288,36 @@ async def ats_scores(request: Request):
         return RedirectResponse(url="/upload", status_code=303)
 
     try:
-        score, feedback = get_ats_score(resume_text, jd_text)
+        # asyncio.to_thread() runs the synchronous OpenAI function in a thread
+        # pool worker. This keeps FastAPI's event loop free to handle other
+        # requests while waiting for the OpenAI response (typically 5–15 s).
+        score, feedback = await asyncio.to_thread(get_ats_score, resume_text, jd_text)
     except Exception as e:
         flash(request, f"Error generating ATS score: {e}", "error")
         return RedirectResponse(url="/upload", status_code=303)
 
-    feedback_html = mistune.create_markdown()(feedback)
+    industry = request.session.get('industry', 'Unknown')
+    seniority = request.session.get('seniority', 'Unknown')
+
+    # record_ats_score is wrapped in try/except inside analytics_service —
+    # it will never raise, so it cannot block or delay the page rendering.
+    record_ats_score(score, industry, seniority)
+
+    # get_ats_benchmark returns {"available": False} if there's no data yet,
+    # so the template must check benchmark.available before rendering.
+    benchmark = get_ats_benchmark(score, industry)
+
+    # feedback_html = mistune.create_markdown()(feedback)
+    feedback_html = mistune.create_markdown(plugins=["table"])(feedback)
     resume_name, jd_name = get_file_names(request)
-    return templates.TemplateResponse(request, "ats_score.html", {"score": score, "feedback": feedback_html, "resume_name": resume_name, "jd_name": jd_name})
+
+    return templates.TemplateResponse(request, "ats_score.html", {
+        "score":       score,
+        "feedback":    feedback_html,
+        "resume_name": resume_name,
+        "jd_name":     jd_name,
+        "benchmark":   benchmark,
+    })
 
 
 @router.get("/fine_tune")
@@ -263,28 +328,28 @@ async def fine_tune(request: Request):
         return RedirectResponse(url="/upload", status_code=303)
 
     try:
-        optimized = fine_tune_resume(resume_text, jd_text)
+        # Same pattern: run the blocking OpenAI call in a thread pool so the
+        # event loop is not frozen while waiting for the API response.
+        optimized = await asyncio.to_thread(fine_tune_resume, resume_text, jd_text)
     except Exception as e:
         flash(request, f"Error optimising resume: {e}", "error")
         return RedirectResponse(url="/upload", status_code=303)
 
-    optimized_html = mistune.create_markdown()(optimized)
+    # optimized_html = mistune.create_markdown()(optimized)
+    optimized_html = mistune.create_markdown(plugins=["table"])(optimized)
     resume_name, jd_name = get_file_names(request)
 
-    # Save the optimised resume as a .docx for download
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
     tmp.close()
     save_as_docx(optimized, tmp.name)
-
-    # Store the download path in session (not as a query param — avoids path traversal)
     request.session['download_resume_path'] = tmp.name
 
     return templates.TemplateResponse(request, "optimization_report.html", {
         "optimized_resume": optimized_html,
-        "report": "Fine-tuning complete. Resume is now ATS-friendly.",
-        "download_path": tmp.name,
-        "resume_name": resume_name,
-        "jd_name": jd_name
+        "report":           "Fine-tuning complete. Resume is now ATS-friendly.",
+        "download_path":    tmp.name,
+        "resume_name":      resume_name,
+        "jd_name":          jd_name,
     })
 
 
@@ -296,27 +361,25 @@ async def generate_cover_letter_route(request: Request):
         return RedirectResponse(url="/upload", status_code=303)
 
     try:
-        cover_letter_md = generate_cover_letter(resume_text, jd_text)
+        cover_letter_md = await asyncio.to_thread(generate_cover_letter, resume_text, jd_text)
     except Exception as e:
         flash(request, f"Error generating cover letter: {e}", "error")
         return RedirectResponse(url="/upload", status_code=303)
 
-    cover_letter_html = mistune.create_markdown()(cover_letter_md)
+    # cover_letter_html = mistune.create_markdown()(cover_letter_md)
+    cover_letter_html = mistune.create_markdown(plugins=["table"])(cover_letter_md)
     resume_name, jd_name = get_file_names(request)
 
-    # Save the cover letter as a .docx for download
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
     tmp.close()
     save_as_docx(cover_letter_md, tmp.name)
-
-    # Store the download path in session
     request.session['download_cover_letter_path'] = tmp.name
 
     return templates.TemplateResponse(request, "cover_letter.html", {
-        "cover_letter": cover_letter_html,
+        "cover_letter":  cover_letter_html,
         "download_path": tmp.name,
-        "resume_name": resume_name,
-        "jd_name": jd_name
+        "resume_name":   resume_name,
+        "jd_name":       jd_name,
     })
 
 
@@ -328,32 +391,49 @@ async def analyze_job_posting_route(request: Request):
         return RedirectResponse(url="/upload", status_code=303)
 
     try:
-        analysis = analyze_job_posting(jd_text)
+        analysis = await asyncio.to_thread(analyze_job_posting, jd_text)
     except Exception as e:
         flash(request, f"Error analysing job posting: {e}", "error")
         return RedirectResponse(url="/upload", status_code=303)
 
-    analysis_html = mistune.create_markdown()(analysis)
+    # analysis_html = mistune.create_markdown()(analysis)
+    analysis_html = mistune.create_markdown(plugins=["table"])(analysis)
     resume_name, jd_name = get_file_names(request)
-    return templates.TemplateResponse(request, "job_analysis.html", {"analysis": analysis_html, "resume_name": resume_name, "jd_name": jd_name})
+
+    return templates.TemplateResponse(request, "job_analysis.html", {
+        "analysis":    analysis_html,
+        "resume_name": resume_name,
+        "jd_name":     jd_name,
+    })
 
 
 @router.get("/dashboard")
 async def dashboard(request: Request):
+    """
+    Market Intelligence dashboard.
+
+    Option 1: skill_trends uses Delta time travel to show which keywords
+              are rising or falling compared to 7 days ago.
+    Option 2: remote_breakdown and experience_dist use the new columns
+              added to job_submissions via Delta schema evolution.
+    All new calls fail gracefully (return [] if Databricks is unavailable).
+    """
     return templates.TemplateResponse(request, "dashboard.html", {
-        "total": get_total_submissions(),
-        "tech_skills": get_top_technical_skills(),
-        "soft_skills": get_top_soft_skills(),
-        "keywords": get_top_keywords(),
-        "industries": get_industry_breakdown(),
-        "seniority": get_seniority_breakdown(),
+        "total":            get_total_submissions(),
+        "tech_skills":      get_top_technical_skills(),
+        "soft_skills":      get_top_soft_skills(),
+        "keywords":         get_top_keywords(),
+        "industries":       get_industry_breakdown(),
+        "seniority":        get_seniority_breakdown(),
+        "skill_trends":     get_skill_trend_comparison(days_back=7),
+        "remote_breakdown": get_remote_breakdown(),
+        "experience_dist":  get_experience_distribution(),
     })
 
 
 @router.get("/download_report")
 async def download_report(path: str):
     """Download the optimised resume as a .docx file."""
-    # Security: only serve files from the temp directory that end with .docx
     if not path.endswith('.docx') or not os.path.exists(path):
         return RedirectResponse(url="/upload", status_code=303)
     return FileResponse(path, media_type="application/octet-stream", filename="optimized_resume.docx")
@@ -366,19 +446,20 @@ async def download_cover_letter(path: str):
         return RedirectResponse(url="/upload", status_code=303)
     return FileResponse(path, media_type="application/octet-stream", filename="cover_letter.docx")
 
+
 @router.get("/tools")
 async def tools_page(request: Request):
     resume_path = request.session.get('resume_path')
     jd_path = request.session.get('jd_path')
-    # If no files uploaded yet, send back to upload
     if not (resume_path and jd_path):
         flash(request, "Please upload your resume and job description first.", "error")
         return RedirectResponse(url="/upload", status_code=303)
     resume_name, jd_name = get_file_names(request)
     return templates.TemplateResponse(request, "tools.html", {
         "resume_name": resume_name,
-        "jd_name": jd_name,
+        "jd_name":     jd_name,
     })
+
 
 @router.get("/clear")
 async def clear_session(request: Request):

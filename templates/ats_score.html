@@ -5,6 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ATS Score – CareerForge</title>
   <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+  <style>
+    /* ── Option 4: Benchmark card styles ─────────────────────────────────
+       Inline here so we don't need to modify style.css for this feature.
+       The card uses a subtle dark banner similar to the dual-banner on About. */
+    .benchmark-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      background: linear-gradient(135deg, #111118 0%, #14532D 100%);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.75rem;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+    .benchmark-stat {
+      text-align: center;
+      flex: 1;
+    }
+    .benchmark-stat .b-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: #22C55E;
+      line-height: 1;
+      margin-bottom: 0.2rem;
+    }
+    .benchmark-stat .b-label {
+      color: rgba(255,255,255,0.65);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .benchmark-divider {
+      width: 1px;
+      height: 48px;
+      background: rgba(255,255,255,0.15);
+      flex-shrink: 0;
+    }
+    .benchmark-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-sec);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .benchmark-note {
+      font-size: 0.78rem;
+      color: var(--text-sec);
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+  </style>
 </head>
 <body>
 
@@ -89,6 +142,36 @@
         </div>
       </div>
 
+      <!-- ── Option 4: Crowd-sourced benchmark card ──────────────────────────
+           Only rendered when benchmark.available == True, which requires at
+           least one previous score to exist in the Databricks ats_scores table.
+           This card becomes more accurate with every submission — a real
+           network effect powered by Databricks Delta Lake.
+      ──────────────────────────────────────────────────────────────────────── -->
+      {% if benchmark and benchmark.available %}
+        <p class="benchmark-header">✦ Crowd-sourced Benchmark — {{ benchmark.total_count }} submissions analysed</p>
+        <div class="benchmark-card">
+          <div class="benchmark-stat">
+            <div class="b-num">{{ benchmark.percentile }}%</div>
+            <div class="b-label">of submissions you beat</div>
+          </div>
+          <div class="benchmark-divider"></div>
+          <div class="benchmark-stat">
+            <div class="b-num">{{ benchmark.avg_score }}</div>
+            <div class="b-label">platform average</div>
+          </div>
+          <div class="benchmark-divider"></div>
+          <div class="benchmark-stat">
+            <div class="b-num">{{ benchmark.top_score }}</div>
+            <div class="b-label">highest score on record</div>
+          </div>
+        </div>
+        <p class="benchmark-note">
+          Percentile ranking is computed from all ATS scores ever recorded on CareerForge,
+          stored anonymously in Databricks Delta Lake. No personal data is retained.
+        </p>
+      {% endif %}
+
       <div class="score-explain">
         CareerForge scores resumes from <strong>1.0 to 10.0</strong> in increments of 0.5,
         evaluating keyword alignment, section structure, formatting, and role fit.
@@ -97,9 +180,7 @@
       <h3 style="font-family:'DM Serif Display',serif; font-size:1.1rem; margin-bottom:0.875rem;">Detailed Feedback</h3>
       <div class="prose">{{ feedback | safe }}</div>
 
-
     </div>
-
   </div>
 
   <footer class="footer">© 2026 CareerForge. All rights reserved.</footer>

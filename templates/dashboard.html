@@ -6,6 +6,72 @@
   <title>Job Market Trends – CareerForge</title>
   <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    /* ── Trend table styles (Option 1) ───────────────────────────────────── */
+    .trend-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .trend-table th {
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-sec);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .trend-table td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .trend-table tr:last-child td { border-bottom: none; }
+    .trend-table tr:hover td { background: var(--bg); }
+    .trend-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .trend-up     { background: #ECFDF5; color: #059669; }
+    .trend-down   { background: #FEF2F2; color: #DC2626; }
+    .trend-new    { background: #EFF6FF; color: #2563EB; }
+    .trend-stable { background: var(--bg); color: var(--text-sec); }
+    .kw-pill {
+      display: inline-block;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .time-travel-note {
+      font-size: 0.78rem;
+      color: var(--text-sec);
+      margin-top: 0.75rem;
+      font-style: italic;
+    }
+    .time-travel-note strong { color: var(--accent); font-style: normal; }
+    /* Section divider label */
+    .section-group-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-sec);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 2rem 0 0.875rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
 </head>
 <body>
 
@@ -21,10 +87,10 @@
 
     <div class="page-header">
       <h1>Job Market Intelligence</h1>
-      <p>Using anonymised insights from every job description shared on CareerForge.</p>
+      <p>Using anonymised insights from every job description shared on CareerForge, stored in Databricks Delta Lake.</p>
     </div>
 
-    <!-- Stat cards -->
+    <!-- ── Stat cards ─────────────────────────────────────────────────────── -->
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
       <div class="stat-card">
         <div class="stat-num">{{ total }}</div>
@@ -40,7 +106,7 @@
       </div>
     </div>
 
-    <!-- Charts row 1 -->
+    <!-- ── Charts row 1: technical skills + seniority ─────────────────────── -->
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
       <div class="chart-card">
         <h5>Top In-Demand Technical Skills</h5>
@@ -60,7 +126,7 @@
       </div>
     </div>
 
-    <!-- Charts row 2 -->
+    <!-- ── Charts row 2: industry + soft skills ───────────────────────────── -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
       <div class="chart-card">
         <h5>Industry Breakdown</h5>
@@ -82,7 +148,7 @@
       </div>
     </div>
 
-    <!-- Keywords -->
+    <!-- ── Keywords ───────────────────────────────────────────────────────── -->
     <div class="chart-card">
       <h5>Top Keywords from Job Descriptions</h5>
       {% if keywords %}
@@ -94,39 +160,130 @@
       {% endif %}
     </div>
 
-  </div>
+    <!-- ════════════════════════════════════════════════════════════════════
+         OPTION 1: Delta Lake Time Travel — Keyword Trend Table
+         This section uses get_skill_trend_comparison() which queries
+         keyword_counts TIMESTAMP AS OF 7 days ago to compute change.
+         Delta Lake is the only open-table format that supports this syntax.
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <p class="section-group-label">✦ Powered by Delta Lake Time Travel</p>
+
+    <div class="chart-card">
+      <h5>Keyword Trends — 7-Day Comparison</h5>
+      {% if skill_trends %}
+        <table class="trend-table">
+          <thead>
+            <tr>
+              <th>Keyword</th>
+              <th>Current Count</th>
+              <th>7 Days Ago</th>
+              <th>Change</th>
+              <th>Trend</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in skill_trends %}
+            <tr>
+              <td><span class="kw-pill">{{ t.keyword }}</span></td>
+              <td><strong>{{ t.current_count }}</strong></td>
+              <td>{{ t.past_count }}</td>
+              <td>
+                {% if t.change > 0 %}+{{ t.change }}{% else %}{{ t.change }}{% endif %}
+              </td>
+              <td>
+                {% if t.direction == "up" %}
+                  <span class="trend-badge trend-up">↑ +{{ t.pct_change }}%</span>
+                {% elif t.direction == "down" %}
+                  <span class="trend-badge trend-down">↓ {{ t.pct_change }}%</span>
+                {% elif t.direction == "new" %}
+                  <span class="trend-badge trend-new">✦ New</span>
+                {% else %}
+                  <span class="trend-badge trend-stable">— Stable</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="time-travel-note">
+          Trend data is computed using <strong>Delta Lake Time Travel</strong>:
+          <code>SELECT ... FROM keyword_counts TIMESTAMP AS OF '{{ "7 days ago" }}'</code>.
+          This is a Delta-exclusive feature — no standard SQL database can query historical
+          table state without a separate ETL pipeline or backup.
+          Keywords marked <em>New</em> have no baseline yet (table younger than 7 days).
+        </p>
+      {% else %}
+        <p style="color: var(--text-sec); font-size: 0.875rem;">
+          No trend data yet. Submit at least one job description to start building
+          the keyword index. Trend comparison requires 7+ days of data for historical baseline.
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         OPTION 2: Richer Submission Analytics
+         Uses columns added via Delta schema evolution (ALTER TABLE ADD COLUMN
+         IF NOT EXISTS) — remote_type, required_years, salary_range.
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <p class="section-group-label">✦ Powered by Delta Schema Evolution</p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+
+      <!-- Remote work breakdown chart -->
+      <div class="chart-card">
+        <h5>Remote Work Breakdown</h5>
+        {% if remote_breakdown %}
+          <canvas id="remoteChart" height="240"></canvas>
+          <p style="font-size: 0.78rem; color: var(--text-sec); margin-top: 0.75rem; font-style: italic;">
+            Extracted from job descriptions using AI and stored in the
+            <code>remote_type</code> column — added to <code>job_submissions</code>
+            via Delta's <code>ALTER TABLE ADD COLUMN IF NOT EXISTS</code> without
+            dropping or recreating the table.
+          </p>
+        {% else %}
+          <p style="color: var(--text-sec); font-size: 0.875rem;">No data yet.</p>
+        {% endif %}
+      </div>
+
+      <!-- Experience distribution chart -->
+      <div class="chart-card">
+        <h5>Avg. Years of Experience Required by Seniority</h5>
+        {% if experience_dist %}
+          <canvas id="expChart" height="240"></canvas>
+          <p style="font-size: 0.78rem; color: var(--text-sec); margin-top: 0.75rem; font-style: italic;">
+            Shows whether seniority labels match actual experience requirements.
+            Stored in <code>required_years</code> — a new INT column added via Delta schema evolution.
+          </p>
+        {% else %}
+          <p style="color: var(--text-sec); font-size: 0.875rem;">No data yet. Submit job descriptions that specify required years of experience.</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div><!-- /main-container -->
 
   <footer class="footer">© 2026 CareerForge. All rights reserved.</footer>
 
   <script>
     const ACCENT  = '#059669';
     const DARK    = '#064E3B';
-    const PALETTE = ['#064E3B','#059669','#10B981','#6EE7B7','#D1FAE5'];
+    const PALETTE = ['#064E3B','#059669','#10B981','#6EE7B7','#D1FAE5','#A7F3D0','#34D399'];
+
+    // ── Original charts ────────────────────────────────────────────────────
 
     {% if tech_skills %}
-    // Slice to top 6 only
     const techLabels = {{ tech_skills | map(attribute='skill') | list | tojson }}.slice(0, 6);
     const techData   = {{ tech_skills | map(attribute='count') | list | tojson }}.slice(0, 6);
-
     new Chart(document.getElementById('techSkillsChart'), {
       type: 'bar',
       data: {
         labels: techLabels,
-        datasets: [{
-          label: 'Occurrences',
-          data: techData,
-          backgroundColor: ACCENT,
-          borderRadius: 6,
-          borderSkipped: false
-        }]
+        datasets: [{ label: 'Occurrences', data: techData, backgroundColor: ACCENT, borderRadius: 6, borderSkipped: false }]
       },
       options: {
         responsive: true,
         plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#F0EFE9' } },
-          x: { grid: { display: false } }
-        }
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#F0EFE9' } }, x: { grid: { display: false } } }
       }
     });
     {% endif %}
@@ -147,13 +304,7 @@
       type: 'bar',
       data: {
         labels: {{ industries | map(attribute='industry') | list | tojson }},
-        datasets: [{
-          label: 'Job Postings',
-          data: {{ industries | map(attribute='count') | list | tojson }},
-          backgroundColor: ACCENT,
-          borderRadius: 6,
-          borderSkipped: false
-        }]
+        datasets: [{ label: 'Job Postings', data: {{ industries | map(attribute='count') | list | tojson }}, backgroundColor: ACCENT, borderRadius: 6, borderSkipped: false }]
       },
       options: {
         indexAxis: 'y',
@@ -163,7 +314,74 @@
       }
     });
     {% endif %}
-  </script>
 
+    // ── Option 2: Remote work doughnut chart ───────────────────────────────
+    {% if remote_breakdown %}
+    new Chart(document.getElementById('remoteChart'), {
+      type: 'doughnut',
+      data: {
+        labels: {{ remote_breakdown | map(attribute='remote_type') | list | tojson }},
+        datasets: [{
+          data: {{ remote_breakdown | map(attribute='count') | list | tojson }},
+          backgroundColor: ['#064E3B', '#059669', '#10B981', '#6EE7B7'],
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { size: 11 }, padding: 14 }
+          }
+        },
+        cutout: '55%'
+      }
+    });
+    {% endif %}
+
+    // ── Option 2: Experience distribution horizontal bar chart ─────────────
+    {% if experience_dist %}
+    new Chart(document.getElementById('expChart'), {
+      type: 'bar',
+      data: {
+        labels: {{ experience_dist | map(attribute='seniority') | list | tojson }},
+        datasets: [{
+          label: 'Avg. Years Required',
+          data: {{ experience_dist | map(attribute='avg_years') | list | tojson }},
+          backgroundColor: ACCENT,
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        indexAxis: 'y',   // horizontal bars — easier to read seniority labels
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              // Show "X years (N submissions)" in tooltip
+              label: function(ctx) {
+                const counts = {{ experience_dist | map(attribute='count') | list | tojson }};
+                return ` ${ctx.parsed.x} yrs avg (${counts[ctx.dataIndex]} submissions)`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            title: { display: true, text: 'Years', font: { size: 11 } },
+            grid: { color: '#F0EFE9' }
+          },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+    {% endif %}
+
+  </script>
 </body>
 </html>
