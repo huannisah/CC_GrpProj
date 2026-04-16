@@ -125,7 +125,7 @@ No personally identifiable information is ever stored. Only aggregate signals (s
                   │                       │
        ┌──────────▼──────┐     ┌──────────▼──────────────┐
        │   OpenAI API    │     │  Databricks Free Edition │
-       │  (gpt-4o-mini)  │     │   Delta Lake (SQL)       │
+       │  (gpt-5.4-nano)  │     │   Delta Lake (SQL)       │
        │  ats_score_rule │     │   skill_counts           │
        │  resume_opt_rule│     │   keyword_counts         │
        │  cover_ltr_rule │     │   job_submissions        │
@@ -143,7 +143,7 @@ No personally identifiable information is ever stored. Only aggregate signals (s
    → 422 Unprocessable Entity if validation fails (automatic)
 
 3. Route handler calls get_ats_score(resume_text, jd_text)
-   → openai_service.py sends prompt + text to gpt-4o-mini
+   → openai_service.py sends prompt + text to gpt-5.4-nano
    → Returns (score: float, feedback: str)
 
 4. Route handler calls record_ats_score(score) [background, non-blocking]
@@ -489,7 +489,7 @@ Open `.env` in your editor and fill in your values:
 
 ```env
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_MODEL=gpt-5.4-nano
 
 DATABRICKS_HOST=https://adb-xxxxxxxxxxxxxxxx.azuredatabricks.net
 DATABRICKS_TOKEN=dapixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -536,7 +536,7 @@ The `--reload` flag means the server restarts automatically when you save a Pyth
 | Variable | Required | Description |
 |---|---|---|
 | `OPENAI_API_KEY` | ✅ | Your OpenAI API key. Get from [platform.openai.com](https://platform.openai.com/api-keys) |
-| `OPENAI_MODEL` | ❌ | Default: `gpt-4o-mini`. Change to `gpt-4o` for higher quality (costs more) |
+| `OPENAI_MODEL` | ❌ | Default: `gpt-5.4-nano`. |
 | `DATABRICKS_HOST` | ❌ | Full URL of your Databricks workspace, e.g. `https://adb-xxxxx.azuredatabricks.net` |
 | `DATABRICKS_TOKEN` | ❌ | Databricks personal access token |
 | `DATABRICKS_HTTP_PATH` | ❌ | HTTP path of your SQL Warehouse, e.g. `/sql/1.0/warehouses/xxxxx` |
