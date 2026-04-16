@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Market Trends – CareerForge</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">Career<span class="logo-dot">Forge</span></div>
+    <div class="menu">
+      <a href="{{ request.url_for('index') }}">Home</a>
+      <a href="{{ request.url_for('about') }}">About</a>
+    </div>
+  </nav>
+
+  <div class="main-container wide" style="padding-bottom: 4rem;">
+
+    <div class="page-header">
+      <h1>Job Market Intelligence</h1>
+      <p>Using anonymised insights from every job description shared on CareerForge.</p>
+    </div>
+
+    <!-- Stat cards -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+      <div class="stat-card">
+        <div class="stat-num">{{ total }}</div>
+        <div class="stat-label">Job Descriptions Analysed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">{{ tech_skills | length }}</div>
+        <div class="stat-label">Unique Technical Skills Tracked</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">{{ industries | length }}</div>
+        <div class="stat-label">Industries Represented</div>
+      </div>
+    </div>
+
+    <!-- Charts row 1 -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+      <div class="chart-card">
+        <h5>Top In-Demand Technical Skills</h5>
+        {% if tech_skills %}
+          <canvas id="techSkillsChart" height="240"></canvas>
+        {% else %}
+          <p style="color: var(--text-sec); font-size: 0.875rem;">No data yet — submit a job description to get started.</p>
+        {% endif %}
+      </div>
+      <div class="chart-card">
+        <h5>Seniority Distribution</h5>
+        {% if seniority %}
+          <canvas id="seniorityChart" height="240"></canvas>
+        {% else %}
+          <p style="color: var(--text-sec); font-size: 0.875rem;">No data yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Charts row 2 -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+      <div class="chart-card">
+        <h5>Industry Breakdown</h5>
+        {% if industries %}
+          <canvas id="industryChart" height="240"></canvas>
+        {% else %}
+          <p style="color: var(--text-sec); font-size: 0.875rem;">No data yet.</p>
+        {% endif %}
+      </div>
+      <div class="chart-card">
+        <h5>Most Sought Soft Skills</h5>
+        {% if soft_skills %}
+          {% for s in soft_skills %}
+            <span class="pill" style="background: #064E3B;">{{ s.skill }} ({{ s.count }})</span>
+          {% endfor %}
+        {% else %}
+          <p style="color: var(--text-sec); font-size: 0.875rem;">No data yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Keywords -->
+    <div class="chart-card">
+      <h5>Top Keywords from Job Descriptions</h5>
+      {% if keywords %}
+        {% for kw in keywords %}
+          <span class="pill" style="background: #064E3B;">{{ kw.keyword }} ({{ kw.count }})</span>
+        {% endfor %}
+      {% else %}
+        <p style="color: var(--text-sec); font-size: 0.875rem;">No data yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <footer class="footer">© 2026 CareerForge. All rights reserved.</footer>
+
+  <script>
+    const ACCENT  = '#059669';
+    const DARK    = '#064E3B';
+    const PALETTE = ['#064E3B','#059669','#10B981','#6EE7B7','#D1FAE5'];
+
+    {% if tech_skills %}
+    // Slice to top 6 only
+    const techLabels = {{ tech_skills | map(attribute='skill') | list | tojson }}.slice(0, 6);
+    const techData   = {{ tech_skills | map(attribute='count') | list | tojson }}.slice(0, 6);
+
+    new Chart(document.getElementById('techSkillsChart'), {
+      type: 'bar',
+      data: {
+        labels: techLabels,
+        datasets: [{
+          label: 'Occurrences',
+          data: techData,
+          backgroundColor: ACCENT,
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#F0EFE9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+    {% endif %}
+
+    {% if seniority %}
+    new Chart(document.getElementById('seniorityChart'), {
+      type: 'doughnut',
+      data: {
+        labels: {{ seniority | map(attribute='seniority') | list | tojson }},
+        datasets: [{ data: {{ seniority | map(attribute='count') | list | tojson }}, backgroundColor: PALETTE, borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } } }, cutout: '60%' }
+    });
+    {% endif %}
+
+    {% if industries %}
+    new Chart(document.getElementById('industryChart'), {
+      type: 'bar',
+      data: {
+        labels: {{ industries | map(attribute='industry') | list | tojson }},
+        datasets: [{
+          label: 'Job Postings',
+          data: {{ industries | map(attribute='count') | list | tojson }},
+          backgroundColor: ACCENT,
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, grid: { color: '#F0EFE9' } }, y: { grid: { display: false } } }
+      }
+    });
+    {% endif %}
+  </script>
+
+</body>
+</html>

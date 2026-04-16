@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tools – CareerForge</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">Career<span class="logo-dot">Forge</span></div>
+    <div class="menu">
+      <a href="{{ request.url_for('index') }}">Home</a>
+      <a href="{{ request.url_for('about') }}">About</a>
+    </div>
+  </nav>
+
+  <div class="tools-container">
+
+    <div class="success-banner">
+      <div class="s-icon">✓</div>
+      <div>
+        Documents uploaded successfully!
+        <span>Choose a tool below to get started.</span>
+      </div>
+    </div>
+
+    {% if resume_name or jd_name %}
+    <div class="file-chips">
+      {% if resume_name %}
+        <div class="file-chip">
+          <div class="file-chip-dot"></div> {{ resume_name }}
+        </div>
+      {% endif %}
+      {% if jd_name %}
+        <div class="file-chip">
+          <div class="file-chip-dot"></div> {{ jd_name }}
+        </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <p class="section-label">What would you like to do?</p>
+
+    <div class="tool-grid">
+      <a href="{{ request.url_for('ats_scores') }}" class="tool-card">
+        <div class="tool-card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/>
+          </svg>
+        </div>
+        <h3>ATS Score</h3>
+        <p>Score your resume against the job description and get detailed, actionable feedback.</p>
+        <div class="tool-card-cta">Run evaluation →</div>
+      </a>
+      <a href="{{ request.url_for('fine_tune') }}" class="tool-card">
+        <div class="tool-card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </div>
+        <h3>Resume Fine-Tune</h3>
+        <p>AI-rewrite your resume for maximum ATS compatibility with this role. Download as .docx.</p>
+        <div class="tool-card-cta">Optimise resume →</div>
+      </a>
+      <a href="{{ request.url_for('generate_cover_letter_route') }}" class="tool-card">
+        <div class="tool-card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <h3>Cover Letter</h3>
+        <p>Generate a personalised cover letter grounded in your resume and the job description.</p>
+        <div class="tool-card-cta">Generate letter →</div>
+      </a>
+      <a href="{{ request.url_for('analyze_job_posting_route') }}" class="tool-card">
+        <div class="tool-card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </div>
+        <h3>Job Analysis</h3>
+        <p>Break down the job posting — required skills, culture signals, red flags, and advice.</p>
+        <div class="tool-card-cta">Analyse posting →</div>
+      </a>
+    </div>
+
+    <div class="reupload-row">
+      <p>Want to use different documents?</p>
+      <a href="{{ request.url_for('upload_page') }}">Upload again →</a>
+    </div>
+
+  </div>
+
+  <footer class="footer">© 2026 CareerForge. All rights reserved.</footer>
+
+</body>
+</html>

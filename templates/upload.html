@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload – CareerForge</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">Career<span class="logo-dot">Forge</span></div>
+    <div class="menu">
+      <a href="{{ request.url_for('index') }}">Home</a>
+      <a href="{{ request.url_for('about') }}">About</a>
+    </div>
+  </nav>
+
+  <div class="main-container" style="max-width: 980px;">
+
+    {% if messages %}
+      <div style="margin-bottom: 1rem;">
+        {% for msg in messages %}
+          <div class="alert alert-{{ 'success' if msg.category == 'success' else 'danger' }}">
+            {{ '✓' if msg.category == 'success' else '✕' }} {{ msg.message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form action="{{ request.url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+      <div class="upload-grid">
+
+        <!-- Step 1: Resume -->
+        <div class="panel-left">
+          <div class="panel-heading">
+            <h2>Step 1 — Your resume</h2>
+            <p>Upload once, use all tools without re-uploading.</p>
+          </div>
+
+          <div class="upload-zone" id="resumeZone">
+            <input type="file" name="resume" id="resume"
+                   accept=".pdf,.docx,.txt" required onchange="onResumeChange(this)">
+            <div class="upload-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 15V3"/><path d="M8 7l4-4 4 4"/>
+                <path d="M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/>
+              </svg>
+            </div>
+            <p class="uz-title">Click to upload or drag &amp; drop</p>
+            <p class="uz-sub">Your resume file</p>
+            <div class="file-formats">
+              <span class="file-fmt">PDF</span>
+              <span class="file-fmt">DOCX</span>
+              <span class="file-fmt">TXT</span>
+            </div>
+          </div>
+
+          <div class="file-selected" id="resumeSelected">
+            <span>✓</span><span id="resumeFilename"></span>
+          </div>
+
+          <div class="panel-footer">
+            <p>Your resume is stored temporarily for this session only and is never shared or retained permanently.</p>
+          </div>
+        </div>
+
+        <!-- Step 2: Job Description -->
+        <div class="panel-right">
+          <div class="panel-heading">
+            <h2>Step 2 — Job description</h2>
+            <p>Provide the role you're applying for.</p>
+          </div>
+
+          <div class="jd-tabs">
+            <div class="jd-tab active" onclick="switchTab('file')">① Upload file</div>
+            <div class="jd-tab" onclick="switchTab('text')">② Paste text</div>
+            <div class="jd-tab" onclick="switchTab('url')">③ URL</div>
+          </div>
+
+          <!-- Tab: file -->
+          <div class="jd-panel active" id="tab-file">
+            <div>
+              <label class="form-label">Upload a job description file</label>
+              <div class="upload-zone" style="padding: 1.5rem;" id="jdZone">
+                <input type="file" name="job_description" id="job_description"
+                       accept=".pdf,.docx,.txt" onchange="onJdFileChange(this)">
+                <div class="upload-icon" style="width:36px;height:36px;border-radius:8px;">
+                  <svg viewBox="0 0 24 24" style="width:16px;height:16px;">
+                    <path d="M12 15V3"/><path d="M8 7l4-4 4 4"/>
+                    <path d="M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/>
+                  </svg>
+                </div>
+                <p class="uz-title" style="font-size:0.82rem;">Click to upload</p>
+                <p class="uz-sub">PDF, DOCX, or TXT</p>
+              </div>
+              <div class="file-selected" id="jdFileSelected">
+                <span>✓</span><span id="jdFilename"></span>
+              </div>
+            </div>
+            <div class="panel-actions">
+              <span></span>
+              <button type="submit" class="btn-submit">Submit →</button>
+            </div>
+          </div>
+
+          <!-- Tab: paste text -->
+          <div class="jd-panel" id="tab-text">
+            <div style="flex:1;display:flex;flex-direction:column;">
+              <label class="form-label">Paste the job description</label>
+              <textarea class="form-control" name="job_text" id="job_text"
+                rows="10" style="flex:1;resize:none;"
+                placeholder="Copy and paste the job description text here..."></textarea>
+            </div>
+            <div class="panel-actions">
+              <span></span>
+              <button type="submit" class="btn-submit">Submit →</button>
+            </div>
+          </div>
+
+          <!-- Tab: URL -->
+          <div class="jd-panel" id="tab-url">
+            <div>
+              <label class="form-label">Job posting URL</label>
+              <input type="url" class="form-control" name="job_url" id="job_url"
+                     placeholder="https://company.com/job-posting">
+              <p class="form-hint" style="margin-top:0.5rem;">
+                Note: pages requiring login (e.g. LinkedIn) may not work — paste text directly instead.
+              </p>
+            </div>
+            <div class="panel-actions">
+              <span></span>
+              <button type="submit" class="btn-submit">Submit →</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <footer class="footer">© 2026 CareerForge. All rights reserved.</footer>
+
+  <script>
+    function switchTab(name) {
+      document.querySelectorAll('.jd-tab').forEach((t, i) => {
+        t.classList.toggle('active', ['file','text','url'][i] === name);
+      });
+      document.querySelectorAll('.jd-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    function onResumeChange(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('resumeFilename').textContent = input.files[0].name;
+        document.getElementById('resumeSelected').style.display = 'flex';
+        document.getElementById('resumeZone').style.borderColor = 'var(--accent)';
+      }
+    }
+
+    function onJdFileChange(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('jdFilename').textContent = input.files[0].name;
+        document.getElementById('jdFileSelected').style.display = 'flex';
+      }
+    }
+  </script>
+
+</body>
+</html>

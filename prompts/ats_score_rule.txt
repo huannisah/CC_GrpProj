@@ -1,0 +1,71 @@
+### ATS Resume Evaluation Rules: 
+A resume should follow the following rules. 
+List down what's wrong and how to fix it for the resume.
+
+1. **JD-Guided Content**
+   - **Guideline**: Extract top keywords, skills, action verbs, and other job requirements from the job description. Integrate these keywords naturally throughout the resume, ensuring a high keyword density while maintaining readability.
+   - **Reason**: ATS uses keyword matching to assign a relevance score, but the resume must still flow naturally as a human will eventually read it.
+
+2. **Resume Sections**
+   - **Guideline**: The resume should have the following sections, in this exact order: *Work Experience*, *Education*, *Skills*, *Projects*, *Achievements*. 
+   - **Reason**: ATS is programmed to look for specific section titles and will misclassify or skip over information if non-standard headings are used.
+
+3. **Reverse-Chronological Order**
+   - **Guideline**: Arrange work experiences in reverse-chronological order. The latest job experience should come first, with company name, job title, and employment date in this order.
+   - **Reason**: ATS expects this format and uses it to accurately parse employment history.
+
+4. **Date Formatting**
+   - **Guideline**: Use standard date formats like MM/YYYY. If there are gaps of 6 months or more between jobs, consider listing only the year portion of the employment dates to conceal gaps.
+   - **Reason**: ATS systems are programmed to recognize these formats, and gaps in employment history may lead to resume rejection.
+
+5. **Measurable Results**
+   - **Guideline**: Express work experiences with measurable results (e.g., "Reduced labor costs by 15%," "Supervised 25 employees").
+   - **Reason**: Recruiters and ATS look for specific, quantifiable results, which demonstrate impact.
+
+6. **Job Title Alignment**
+   - **Guideline**: Align your job titles with those mentioned in the job description, provided they are similar roles.
+   - **Reason**: ATS matches candidates with job titles similar to the ones listed in the job description.
+
+7. **Education**
+   - **Guideline**: Include your school, degree, and major. If you're a recent graduate, include relevant coursework.
+   - **Reason**: ATS primarily looks for the school, degree, and major in the education section.
+
+8. **Single-Page Format**
+   - **Guideline**: Aim to fit the resume into a single page if you have 0-10 years of experience. If you have more than 10 years, a two-page resume is acceptable if it’s necessary to present quality content.
+   - **Reason**: ATS often evaluates the resume based on the signal-to-noise ratio, and a concise, focused resume increases its relevance.
+
+9. **File Type**
+   - **Guideline**: Save your resume in either .pdf or .docx format.
+   - **Reason**: These formats are most commonly accepted by ATS, though some older models may have trouble reading PDF files.
+
+10. **Bullet Points**
+    - **Guideline**: Use bullet points for job responsibilities and achievements instead of long paragraphs.
+    - **Reason**: ATS prefers bullet points because they help keywords stand out and are easier to parse.
+
+11. **Simple Formatting**
+    - **Guideline**: Ensure the resume has a clean, simple layout with no tables, graphics, images, or photos.
+    - **Reason**: ATS might not be able to parse information in non-text elements.
+
+12. **Resume Format**
+    - **Guideline**: Choose a resume format (Chronological, Functional, or Combination) that suits your experience and job application.
+    - **Reason**: The right format ensures that your experience and skills are presented in the most ATS-compatible way.
+
+13. **Section Labels**
+    - **Guideline**: Use standard section labels like "Work Experience," "Skills," and "Education." Avoid unconventional headings that may confuse ATS.
+    - **Reason**: ATS relies on these labels to extract and categorize information.
+
+14. **Font Choice**
+    - **Guideline**: Use standard, ATS-friendly fonts like Arial, Times New Roman, or Calibri.
+    - **Reason**: ATS can have difficulty parsing resumes with non-standard fonts.
+
+15. **Headers and Footers**
+    - **Guideline**: Avoid placing critical information like contact details in headers or footers.
+    - **Reason**: Some ATS may miss information placed outside the main body of the resume.
+
+16. **Keywords**
+    - **Guideline**: Tailor the resume to the specific job by including relevant keywords, including industry-specific certifications and terminology. Use both full and abbreviated forms of relevant terms (e.g., "Certified Public Accountant" and "CPA").
+    - **Reason**: ATS matches resumes with job descriptions by searching for relevant keywords.
+
+17. **Overall Impression**
+    - **Guideline**: Ensure the resume maintains a professional tone, proper formatting, and relevance to the job application.
+    - **Reason**: A well-crafted resume is not only ATS-friendly but also appeals to human recruiters.

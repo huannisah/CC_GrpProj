@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cover Letter – CareerForge</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">Career<span class="logo-dot">Forge</span></div>
+    <div class="menu">
+      <a href="{{ request.url_for('index') }}">Home</a>
+      <a href="{{ request.url_for('about') }}">About</a>
+    </div>
+  </nav>
+
+  <div class="sidebar-layout">
+
+    <div class="sidebar">
+      <p class="sidebar-label">Tools</p>
+      <a href="{{ request.url_for('ats_scores') }}" class="sidebar-item">
+        <div class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg></div> ATS Score
+      </a>
+      <a href="{{ request.url_for('fine_tune') }}" class="sidebar-item">
+        <div class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div> Resume Fine-Tune
+      </a>
+      <a href="{{ request.url_for('generate_cover_letter_route') }}" class="sidebar-item active">
+        <div class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div> Cover Letter
+      </a>
+      <a href="{{ request.url_for('analyze_job_posting_route') }}" class="sidebar-item">
+        <div class="sidebar-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div> Job Analysis
+      </a>
+      <hr class="sidebar-divider">
+      <div class="sidebar-files">
+        <p class="sidebar-files-label">Loaded files</p>
+        {% if resume_name %}<div class="sidebar-file"><div class="sidebar-file-dot"></div><span>{{ resume_name }}</span></div>{% endif %}
+        {% if jd_name %}<div class="sidebar-file"><div class="sidebar-file-dot"></div><span>{{ jd_name }}</span></div>{% endif %}
+      </div>
+      <a href="{{ request.url_for('upload_page') }}" class="sidebar-reupload">↑ Upload new files</a>
+    </div>
+
+    <div class="content-panel">
+      <h2 class="content-title">Cover Letter</h2>
+      <p class="content-subtitle">Personalised based solely on your resume and the job description. No fabricated details.</p>
+
+      <div class="prose" style="background:var(--bg); border-radius:var(--radius-sm); padding:1.5rem; border:1px solid var(--border);">
+        {{ cover_letter | safe }}
+      </div>
+
+      <div class="button-group">
+        <a href="{{ request.url_for('download_cover_letter') }}?path={{ download_path }}" class="btn-download">↓ Download .docx</a>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="footer">© 2026 CareerForge. All rights reserved.</footer>
+
+</body>
+</html>

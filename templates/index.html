@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerForge – AI-Powered Resume Intelligence</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">Career<span class="logo-dot">Forge</span></div>
+    <div class="menu">
+      <a href="{{ request.url_for('dashboard') }}">Market Trends</a>
+      <a href="{{ request.url_for('about') }}">About</a>
+      <a href="{{ request.url_for('upload_page') }}" class="nav-cta">Get Started →</a>
+    </div>
+  </nav>
+
+  <section class="hero-section">
+    <div class="hero-text">
+      <div class="hero-eyebrow">✦ Career Intelligence as a Service</div>
+      <h1 class="hero-title">
+        Get Noticed,<br>
+        Get <em>Ahead</em>,<br>
+        Get Hired.
+      </h1>
+      <p class="hero-sub">
+        AI-powered resume scoring, optimisation, and cover letter generation, all for free.
+        Every submission helps build live job market intelligence for everyone.
+      </p>
+      <div class="feature-pills">
+        <span class="feature-pill">ATS Scoring</span>
+        <span class="feature-pill">Resume Optimisation</span>
+        <span class="feature-pill">Cover Letter Generator</span>
+        <span class="feature-pill">Job Analysis</span>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img src="/static/assets/images/ResumeHero.png" alt="CareerForge Illustration">
+    </div>
+  </section>
+
+  <footer class="footer">© 2026 CareerForge. All rights reserved.</footer>
+
+</body>
+</html>

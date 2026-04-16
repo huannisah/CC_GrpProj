@@ -1,0 +1,35 @@
+Job Analysis Rules:
+
+1. **Describe the Job and Company Culture**
+   - **Research the Company:** Beyond the job description, explore the company’s website, recent news, and social media profiles. Look for the company’s values, mission, and any recent projects or milestones.
+   - **Identify Cultural Fit Indicators:** Check for any descriptions of workplace culture, values, or employee testimonials. Understanding the company culture helps you align your tone and emphasize relevant personal qualities in your application.
+
+2. **Identify and Categorize Required Skills and Qualifications**
+   - **Separate Must-Have Skills from Preferred Skills:** Some descriptions list mandatory qualifications versus preferred qualifications. Knowing which are essential helps prioritize how you present your skills.
+   - **Cluster Skills by Type:** Group skills into categories (e.g., technical, soft, and industry-specific) to make sure you cover each area in your resume and cover letter. For example, “data analysis,” “project management,” and “communication” might each require tailored evidence.
+
+3. **Analyze Job Responsibilities and Key Duties**
+   - **Highlight Core Responsibilities:** Identify the main tasks that recur throughout the description, as these indicate the job’s focus.
+   - **Identify Success Metrics:** If the job mentions expectations or performance indicators (e.g., “improve processes,” “increase sales”), address these by showing relevant accomplishments from past roles.
+
+4. **Spot Unusual or Specialized Requirements**
+   - **Note Unique Qualifications or Certifications:** Some jobs require specific tools, software, certifications, or methodologies. Address any that you meet directly in your resume and mention if you’re pursuing others.
+   - **Identify Industry-Specific Language:** Terms or tasks that are unique to the field can be used in your application to demonstrate industry knowledge.
+
+5. **Extract Keywords for ATS Optimization**
+   - **Identify Common Keywords:** Job descriptions often include repeated keywords. Make sure these are included naturally in your resume and cover letter, as they improve ATS compatibility.
+   - **Use Action Verbs and Industry Terminology:** If the job mentions "analyze," "coordinate," or "execute," consider mirroring these in your descriptions of past responsibilities.
+
+6. **Understand the Job’s Level and Career Stage**
+   - **Determine the Seniority Level:** Understanding whether the job is entry-level, mid-level, or senior can inform how you present your experience (e.g., emphasizing leadership for senior roles).
+   - **Match Tone and Experience Level:** If the role requires several years of experience, emphasize depth in relevant areas; for entry-level, focus on foundational skills and willingness to learn.
+
+7. **Tailor Application Suggestions Based on Job-Specific Insights**
+   - **Link Experiences to Core Duties:** Suggest specific examples from candidates’ backgrounds that directly match the job’s responsibilities and skills.
+   - **Advise on Soft Skills Alignment:** If the job highlights teamwork or adaptability, suggest framing soft skills with examples of collaboration, problem-solving, or flexibility in new situations.
+
+8. **Identify Any Potential Red Flags or High Expectations**
+   - **Watch for High Workload Indicators:** Descriptions like “fast-paced,” “adapt to changing priorities,” or “multitasking” suggest high expectations and might require examples showing resilience.
+   - **Identify Gaps or Unrealistic Requirements:** If a description is very specific or broad, consider preparing for questions about how you meet (or will learn) those aspects in the interview.
+
+These steps can help candidates craft a strong, relevant application by understanding not only the technical qualifications but also the cultural and professional nuances of the job description.
