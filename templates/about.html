@@ -21,16 +21,16 @@
 
     <div class="page-header">
       <h1>About CareerForge</h1>
-      <p>Career Intelligence as a Service — built for job seekers and developers alike.</p>
+      <p>CareerForge is a career intelligence platform built for both job seekers and developers.
+        It helps people improve their applications while also turning job market data into useful, anonymised insights for everyone.</p>
     </div>
 
     <div class="dual-banner">
-      <h3>Dual-Utility: Two Birds, One Stone</h3>
+      <h3>Built to Benefit Everyone</h3>
       <p>
-        CareerForge is architected as a <strong>dual-utility crowdsourced service</strong>.
-        Every job description submitted is anonymously mined for skill and keyword signals —
-        simultaneously helping you land a job and contributing to a public dataset of job market intelligence.
-        No personal data is ever stored. Only anonymised aggregate counts are retained.
+        Every job description submitted to CareerForge is anonymously analysed for skills, keywords, and hiring signals. 
+        On one hand, this helps users tailor their resumes and improve their chances of getting interviews.
+        On the other, it contributes to a growing, public view of what the job market actually looks like.
       </p>
     </div>
 
@@ -39,56 +39,27 @@
       <div class="about-block">
         <h4>What is CareerForge?</h4>
         <p>
-          CareerForge is a <strong>Career Intelligence as a Service (CaaS)</strong> platform —
-          a cloud-native, API-first service that transforms the painful, opaque process of job applications
-          into a fast, data-driven experience accessible to anyone, anywhere, via a web UI or a fully documented REST API.
+          CareerForge is a <strong>Career Intelligence as a Service (CaaS)</strong> platform that helps make job applications
+          faster, clearer, and more data-driven, accessible to anyone, anywhere.
         </p>
       </div>
 
       <div class="about-block">
-        <h4>The Problem We Solve</h4>
+        <h4>The Problem CareerForge Solve</h4>
         <p>
-          Over 75% of resumes are rejected by Applicant Tracking Systems (ATS) before a human ever reads them.
-          Professional resume services cost hundreds of dollars. CareerForge makes expert-level resume intelligence
-          available on demand — free, instant, and programmable.
+          Most resumes never get seen. Over 70% are filtered out by Applicant Tracking Systems (ATS) before a human recruiter
+          reviews them. At the same time, professional resume services are expensive and slow, Thus, CareerForge exists to make
+          that kind of insight accessible instantly, and at no cost.
         </p>
       </div>
 
       <div class="about-block">
-        <h4>Architecture</h4>
-        <p>
-          Unlike traditional monolithic resume tools, CareerForge is built as a set of independent, stateless
-          microservices. Each capability is a separate REST endpoint — meaning any developer, HR platform, or
-          career app can integrate individual services without taking on the entire product.
-        </p>
-      </div>
-
-      <div class="about-block">
-        <h4>Our Features</h4>
+        <h4>Features</h4>
         <ul>
-          <li><strong>ATS Score Evaluation</strong> — Score your resume against a job description (1.0–10.0 in 0.5 increments) with actionable feedback and colour-coded results.</li>
-          <li><strong>Resume Fine-Tuning</strong> — AI-rewritten, ATS-optimised resume tailored to the specific role.</li>
-          <li><strong>Cover Letter Generation</strong> — Personalised cover letter grounded in your resume and the job description.</li>
-          <li><strong>Job Posting Analysis</strong> — Deep breakdown of required skills, culture signals, and red flags.</li>
-        </ul>
-      </div>
-
-      <div class="about-block">
-        <h4>Dual Utility in Practice</h4>
-        <ul>
-          <li><strong>Individual value</strong> — users get a better resume and cover letter, for free</li>
-          <li><strong>Collective value</strong> — aggregated market intelligence is freely available to all via the <a href="{{ request.url_for('dashboard') }}">Job Market Trends Dashboard</a></li>
-        </ul>
-      </div>
-
-      <div class="about-block">
-        <h4>REST API Endpoints</h4>
-        <ul>
-          <li><code>POST /api/v1/ats-score</code> — ATS score + feedback</li>
-          <li><code>POST /api/v1/fine-tune</code> — Optimised resume</li>
-          <li><code>POST /api/v1/cover-letter</code> — Generated cover letter</li>
-          <li><code>POST /api/v1/job-analysis</code> — Job posting analysis</li>
-          <li><code>GET  /api/v1/market-trends</code> — Public market intelligence</li>
+          <li><strong>ATS Score Evaluation</strong>: Get a score for how well your resume matches a job description, along with clear, actionable feedback.</li>
+          <li><strong>Resume Fine-Tuning</strong>: Receive an improved, ATS-optimised version of your resume tailored to a specific role.</li>
+          <li><strong>Cover Letter Generation</strong>: Generate a personalised cover letter based on your resume and the job description.</li>
+          <li><strong>Job Posting Analysis</strong>: Break down a job description into key skills, expectations, and potential red flags.</li>
         </ul>
       </div>
 

@@ -6,9 +6,7 @@
   <title>ATS Score – CareerForge</title>
   <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
   <style>
-    /* ── Option 4: Benchmark card styles ─────────────────────────────────
-       Inline here so we don't need to modify style.css for this feature.
-       The card uses a subtle dark banner similar to the dual-banner on About. */
+
     .benchmark-card {
       display: flex;
       align-items: center;
@@ -111,7 +109,9 @@
     <!-- Main content -->
     <div class="content-panel">
       <h2 class="content-title">ATS Score</h2>
-      <p class="content-subtitle">How well your resume matches the job description.</p>
+      <p class="content-subtitle">How well your resume matches the job description. CareerForge scores resumes from <strong>1.0 to 10.0</strong> in increments of 0.5,
+        evaluating keyword alignment, section structure, formatting, and role fit.
+      </p>
 
       {% if score <= 5.0 %}
         {% set ring_class = "score-red" %}
@@ -142,14 +142,8 @@
         </div>
       </div>
 
-      <!-- ── Option 4: Crowd-sourced benchmark card ──────────────────────────
-           Only rendered when benchmark.available == True, which requires at
-           least one previous score to exist in the Databricks ats_scores table.
-           This card becomes more accurate with every submission — a real
-           network effect powered by Databricks Delta Lake.
-      ──────────────────────────────────────────────────────────────────────── -->
       {% if benchmark and benchmark.available %}
-        <p class="benchmark-header">✦ Crowd-sourced Benchmark — {{ benchmark.total_count }} submissions analysed</p>
+        <p class="benchmark-header">Crowd-sourced Benchmark — {{ benchmark.total_count }} submissions analysed</p>
         <div class="benchmark-card">
           <div class="benchmark-stat">
             <div class="b-num">{{ benchmark.percentile }}%</div>
@@ -166,16 +160,7 @@
             <div class="b-label">highest score on record</div>
           </div>
         </div>
-        <p class="benchmark-note">
-          Percentile ranking is computed from all ATS scores ever recorded on CareerForge,
-          stored anonymously in Databricks Delta Lake. No personal data is retained.
-        </p>
       {% endif %}
-
-      <div class="score-explain">
-        CareerForge scores resumes from <strong>1.0 to 10.0</strong> in increments of 0.5,
-        evaluating keyword alignment, section structure, formatting, and role fit.
-      </div>
 
       <h3 style="font-family:'DM Serif Display',serif; font-size:1.1rem; margin-bottom:0.875rem;">Detailed Feedback</h3>
       <div class="prose">{{ feedback | safe }}</div>

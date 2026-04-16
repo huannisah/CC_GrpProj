@@ -203,3 +203,11 @@ Format:
 
 5. If the JD is in a language other than English, translate the key terms before
    analysis and note the original language.
+
+## FINAL OUTPUT RULES
+- End your response immediately after Section 6. Do not add any closing remarks, 
+  offers to help further, invitations to share documents, or follow-up prompts 
+  of any kind.
+- Do not write sentences beginning with "If you share...", "Feel free to...", 
+  "Let me know if...", or similar phrases.
+- The analysis is complete when Section 6 ends. Stop there.

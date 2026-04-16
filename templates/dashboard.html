@@ -87,7 +87,7 @@
 
     <div class="page-header">
       <h1>Job Market Intelligence</h1>
-      <p>Using anonymised insights from every job description shared on CareerForge, stored in Databricks Delta Lake.</p>
+      <p>Built from anonymised data across job descriptions shared on CareerForge, giving you a real-time view of what employers are looking for.</p>
     </div>
 
     <!-- ── Stat cards ─────────────────────────────────────────────────────── -->
@@ -160,13 +160,9 @@
       {% endif %}
     </div>
 
-    <!-- ════════════════════════════════════════════════════════════════════
-         OPTION 1: Delta Lake Time Travel — Keyword Trend Table
+    <!-- OPTION 1: Delta Lake Time Travel — Keyword Trend Table
          This section uses get_skill_trend_comparison() which queries
-         keyword_counts TIMESTAMP AS OF 7 days ago to compute change.
-         Delta Lake is the only open-table format that supports this syntax.
-    ═══════════════════════════════════════════════════════════════════════ -->
-    <p class="section-group-label">✦ Powered by Delta Lake Time Travel</p>
+         keyword_counts TIMESTAMP AS OF 7 days ago to compute change. -->
 
     <div class="chart-card">
       <h5>Keyword Trends — 7-Day Comparison</h5>
@@ -205,13 +201,6 @@
             {% endfor %}
           </tbody>
         </table>
-        <p class="time-travel-note">
-          Trend data is computed using <strong>Delta Lake Time Travel</strong>:
-          <code>SELECT ... FROM keyword_counts TIMESTAMP AS OF '{{ "7 days ago" }}'</code>.
-          This is a Delta-exclusive feature — no standard SQL database can query historical
-          table state without a separate ETL pipeline or backup.
-          Keywords marked <em>New</em> have no baseline yet (table younger than 7 days).
-        </p>
       {% else %}
         <p style="color: var(--text-sec); font-size: 0.875rem;">
           No trend data yet. Submit at least one job description to start building
@@ -220,12 +209,9 @@
       {% endif %}
     </div>
 
-    <!-- ════════════════════════════════════════════════════════════════════
-         OPTION 2: Richer Submission Analytics
+    <!-- OPTION 2: Richer Submission Analytics
          Uses columns added via Delta schema evolution (ALTER TABLE ADD COLUMN
-         IF NOT EXISTS) — remote_type, required_years, salary_range.
-    ═══════════════════════════════════════════════════════════════════════ -->
-    <p class="section-group-label">✦ Powered by Delta Schema Evolution</p>
+         IF NOT EXISTS) — remote_type, required_years, salary_range. -->
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
 
@@ -234,12 +220,6 @@
         <h5>Remote Work Breakdown</h5>
         {% if remote_breakdown %}
           <canvas id="remoteChart" height="240"></canvas>
-          <p style="font-size: 0.78rem; color: var(--text-sec); margin-top: 0.75rem; font-style: italic;">
-            Extracted from job descriptions using AI and stored in the
-            <code>remote_type</code> column — added to <code>job_submissions</code>
-            via Delta's <code>ALTER TABLE ADD COLUMN IF NOT EXISTS</code> without
-            dropping or recreating the table.
-          </p>
         {% else %}
           <p style="color: var(--text-sec); font-size: 0.875rem;">No data yet.</p>
         {% endif %}
@@ -250,10 +230,6 @@
         <h5>Avg. Years of Experience Required by Seniority</h5>
         {% if experience_dist %}
           <canvas id="expChart" height="240"></canvas>
-          <p style="font-size: 0.78rem; color: var(--text-sec); margin-top: 0.75rem; font-style: italic;">
-            Shows whether seniority labels match actual experience requirements.
-            Stored in <code>required_years</code> — a new INT column added via Delta schema evolution.
-          </p>
         {% else %}
           <p style="color: var(--text-sec); font-size: 0.875rem;">No data yet. Submit job descriptions that specify required years of experience.</p>
         {% endif %}
