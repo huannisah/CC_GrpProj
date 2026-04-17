@@ -3,16 +3,6 @@ schemas.py
 
 Pydantic request/response models for all REST API endpoints.
 FastAPI uses these for automatic validation and Swagger documentation.
-
-Changes for Options 1, 2, 4:
-  - ATSScoreResponse: adds optional benchmark_avg, benchmark_percentile,
-    benchmark_total. Optional means existing API clients won't break — they
-    simply receive null for fields they don't check.
-  - RemoteItem: new model for Option 2 remote work breakdown.
-  - ExperienceItem: new model for Option 2 experience distribution.
-  - SkillTrendItem: new model for Option 1 Delta time travel keyword trends.
-  - MarketTrendsResponse: adds remote_breakdown, experience_distribution,
-    skill_trends (all default to empty list if unavailable).
 """
 
 from pydantic import BaseModel, Field
@@ -105,21 +95,15 @@ class SeniorityItem(BaseModel):
     seniority: str
     count: int
 
-
-# Option 2: remote work type distribution
 class RemoteItem(BaseModel):
     remote_type: str = Field(..., description="e.g. 'Remote', 'Hybrid', 'On-site', 'Not specified'")
     count: int
 
-
-# Option 2: average years of experience required, broken down by seniority
 class ExperienceItem(BaseModel):
     seniority: str = Field(..., description="e.g. 'Entry', 'Mid', 'Senior', 'Lead'")
     avg_years: float = Field(..., description="Average minimum years of experience required")
     count: int = Field(..., description="Number of submissions in this seniority bucket")
 
-
-# Option 1: Delta Lake time travel keyword trend item
 class SkillTrendItem(BaseModel):
     keyword: str
     current_count: int = Field(..., description="Current occurrence count in keyword_counts table")
@@ -140,7 +124,6 @@ class MarketTrendsResponse(BaseModel):
     industry_breakdown: list[IndustryItem]
     seniority_breakdown: list[SeniorityItem]
 
-    # Option 2: richer submission analytics (default empty list if Databricks unavailable)
     remote_breakdown: list[RemoteItem] = Field(
         default=[],
         description="Distribution of remote work types across all submitted job descriptions"
@@ -150,7 +133,6 @@ class MarketTrendsResponse(BaseModel):
         description="Average required years of experience by seniority level"
     )
 
-    # Option 1: Delta Lake time travel (default empty list if Databricks unavailable or table too new)
     skill_trends: list[SkillTrendItem] = Field(
         default=[],
         description="Keyword trend comparison using Delta Lake time travel (7-day window)"
