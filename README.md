@@ -2,11 +2,11 @@
 
 > **SC4052 Cloud Computing — Topic 8: X-as-a-Service**  
 > A cloud-native, API-first career intelligence platform built on FastAPI, OpenAI, Databricks Delta Lake, and Render.
->
-> Juannisa Putri Sunarya
-> Muhammad Wisnu Darmawan
 
 ---
+> Authors:
+> Juannisa Putri Sunarya
+> Muhammad Wisnu Darmawan
 
 ## 1. Project Overview
 
