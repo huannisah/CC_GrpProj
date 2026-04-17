@@ -2,27 +2,9 @@
 
 > **SC4052 Cloud Computing — Topic 8: X-as-a-Service**  
 > A cloud-native, API-first career intelligence platform built on FastAPI, OpenAI, Databricks Delta Lake, and Render.
-
----
-
-## Table of Contents
-
-1. [Project Overview](#1-project-overview)
-2. [The Dual-Utility Design](#2-the-dual-utility-design)
-3. [Live Deployment](#3-live-deployment)
-4. [Architecture](#4-architecture)
-5. [Technology Stack](#5-technology-stack)
-6. [API Reference](#6-api-reference)
-7. [Repository Structure](#7-repository-structure)
-8. [Local Development Setup](#8-local-development-setup)
-9. [Environment Variables](#9-environment-variables)
-10. [Databricks Setup](#10-databricks-setup)
-11. [Deploying to Render](#11-deploying-to-render)
-12. [Cloud Computing Concepts Demonstrated](#12-cloud-computing-concepts-demonstrated)
-13. [Architectural Decisions & Tradeoffs](#13-architectural-decisions--tradeoffs)
-14. [Testing the API](#14-testing-the-api)
-15. [Troubleshooting](#15-troubleshooting)
-16. [Acceptance Criteria Checklist](#16-acceptance-criteria-checklist)
+>
+> Juannisa Putri Sunarya
+> Muhammad Wisnu Darmawan
 
 ---
 
