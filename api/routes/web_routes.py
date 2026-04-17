@@ -4,21 +4,6 @@ web_routes.py
 Server-side rendered web UI routes.
 These serve HTML pages using Jinja2 templates and use session state
 to pass data between the upload step and the tool steps.
-
-Changes for Options 1, 2, 4:
-  - upload_file: after extracting market insights, stores industry + seniority
-    in the session so the ATS score page can query an industry-specific benchmark.
-  - ats_scores: records every score to Databricks, then fetches benchmark data
-    (percentile rank, average score, total count) to pass to the template.
-  - dashboard: now fetches skill_trends (time travel), remote_breakdown, and
-    experience_dist alongside the existing data.
-
-Performance fix:
-  - All synchronous OpenAI calls are now wrapped in asyncio.to_thread() so they
-    run in a thread pool instead of blocking FastAPI's async event loop.
-  - The analytics extraction + Databricks write in upload_file is now a
-    BackgroundTask — the redirect fires immediately and analytics runs after,
-    so a slow or unreachable Databricks cluster never delays the user.
 """
 
 import asyncio
@@ -253,16 +238,6 @@ async def upload_file(
         else 'Job Description'
     )
 
-    # ── Analytics: run AFTER the redirect is already sent ─────────────────
-    # Previously this called extract_market_insights() and record_insights()
-    # directly — blocking the entire response for the duration of an OpenAI
-    # call plus a Databricks connection (up to 60 s if either was slow).
-    #
-    # BackgroundTasks sends the 303 redirect to the browser first, then runs
-    # this function in a background thread. A slow or unreachable Databricks
-    # cluster now has zero impact on how quickly the user reaches /tools.
-    #
-    # We capture jd_text in a local variable to pass into the closure safely.
     def _run_analytics(text: str):
         try:
             insights = extract_market_insights(text)
