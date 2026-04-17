@@ -4,13 +4,6 @@ api_routes.py
 All REST API endpoints under /api/v1/.
 Each endpoint is stateless — resume text and job description are passed
 in the request body every time. No server-side session state.
-
-Changes for Options 1, 2, 4:
-  - /ats-score: now records each score to Databricks and returns benchmark
-    fields (benchmark_avg, benchmark_percentile, benchmark_total) in the
-    response. These are optional — clients that don't use them can ignore them.
-  - /market-trends: now returns remote_breakdown, experience_distribution,
-    and skill_trends (Delta time travel) alongside existing fields.
 """
 
 from fastapi import APIRouter, HTTPException
@@ -55,9 +48,6 @@ async def api_ats_score(body: ATSScoreRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # Option 4: record score for crowd-sourced benchmarking.
-    # Industry/seniority are unknown in the stateless API (no session), so "Unknown" is used.
-    # The recording is in a try/except inside record_ats_score — it will never raise.
     record_ats_score(score, industry="Unknown", seniority="Unknown")
 
     # Fetch benchmark data to include in the API response.
@@ -139,7 +129,7 @@ async def api_job_analysis(body: JobAnalysisRequest):
 async def api_market_trends():
     """
     Returns full market intelligence data from Databricks.
-    If Databricks is unreachable, all lists return empty gracefully (no 500 error).
+    If Databricks is unreachable, all lists return empty gracefully.
     The skill_trends field uses Delta Lake time travel — if the table is < 7 days old,
     trend direction will be 'new' for all keywords (still valid data, just no baseline yet).
     """
