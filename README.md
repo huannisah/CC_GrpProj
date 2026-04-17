@@ -36,7 +36,6 @@ The project is framed around **Topic 8: X-as-a-Service**. The "X" here is *caree
 
 | Feature | Endpoint | Description |
 |---|---|---|
-| Resume Parsing | `POST /api/v1/parse` | Extracts clean plain text from an uploaded PDF resume |
 | Job Analysis | `POST /api/v1/job-analysis` | Breaks down a job description into skills, keywords, seniority, industry, and cultural signals |
 | ATS Scoring | `POST /api/v1/ats-score` | Scores a resume against a job description on a 1–10 scale with detailed feedback and a crowd-sourced percentile rank |
 | Resume Optimisation | `POST /api/v1/fine-tune` | Returns a fully rewritten, ATS-optimised version of the resume in Markdown |
@@ -79,10 +78,8 @@ No personally identifiable information is ever stored. Only aggregate signals (s
 
 | Resource | URL |
 |---|---|
-| **Web UI** | `https://careerai-saas.onrender.com` |
-| **Interactive API Docs (Swagger)** | `https://careerai-saas.onrender.com/docs` |
-| **Alternative API Docs (ReDoc)** | `https://careerai-saas.onrender.com/redoc` |
-| **Health Check** | `https://careerai-saas.onrender.com/api/v1/market-trends` |
+| **Web UI** | `https://careerforge-y7lm.onrender.com` |
+| **Interactive API Docs (Swagger)** | `https://careerforge-y7lm.onrender.com/docs` |
 
 > **Note for markers:** The app is hosted on Render's free tier. If it has been idle for more than 15 minutes, the first request will take up to 60 seconds to wake the instance. Subsequent requests respond normally. This is expected behaviour on free-tier hosting and is documented as a known limitation in [Section 13](#13-architectural-decisions--tradeoffs).
 
@@ -170,9 +167,10 @@ No data is stored in server memory between requests. Every request is fully self
 | **WSGI server** | Uvicorn + Gunicorn | Production-grade ASGI server; Render uses `$PORT` from env |
 | **AI provider** | OpenAI `gpt-5.4-nano` | Best price-to-quality ratio for structured text generation tasks |
 | **PDF parsing** | PyPDF2 | Lightweight, pure-Python PDF text extraction |
+| **Web scraper** | Jina Reader | Fetch and extract clean text from job posting URLs |
 | **Cloud data store** | Databricks Free Edition (Delta Lake) | Delta tables with MERGE, TIME TRAVEL, schema evolution — real enterprise-grade cloud database |
-| **App hosting** | Render (free tier) | GitHub auto-deploy; Singapore region; no credit card required |
-| **Version control** | GitHub | Source of truth; Render pulls from `main` branch on every push |
+| **App hosting** | Render (free tier) | GitHub auto-deploy; Singapore region; |
+| **Version control** | GitHub |
 | **Frontend** | HTML5 + CSS3 + Vanilla JS | No build step required; `fetch()` API for async calls |
 | **Templating** | Jinja2 | Server-side rendering for initial page loads |
 | **Document export** | python-docx | Generates `.docx` files from Markdown in memory |
@@ -184,7 +182,7 @@ No data is stored in server memory between requests. Every request is fully self
 
 ## 6. API Reference
 
-All endpoints are documented interactively at `/docs`. This section is a quick reference.
+All endpoints are documented interactively at `/docs`. 
 
 ### Authentication
 
@@ -193,182 +191,7 @@ No authentication is required. This is a demonstration platform for the SC4052 m
 ### Base URL
 
 ```
-https://careerai-saas.onrender.com/api/v1
-```
-
----
-
-### `POST /api/v1/ats-score`
-
-Score a resume against a job description.
-
-**Request body**
-
-```json
-{
-  "resume_text": "Jane Doe\nSoftware Engineer with 5 years experience in Python...",
-  "jd_text": "We are looking for a Senior Python Engineer with FastAPI experience..."
-}
-```
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `resume_text` | string | ✅ | Plain text extracted from resume |
-| `jd_text` | string | ✅ | Plain text of the job description |
-
-**Response `200 OK`**
-
-```json
-{
-  "score": 7.5,
-  "feedback": "## ATS Score: 7.5/10\n\n### Strengths\n...",
-  "benchmark_avg": 6.2,
-  "benchmark_percentile": 73,
-  "benchmark_total": 142
-}
-```
-
-| Field | Type | Description |
-|---|---|---|
-| `score` | float | ATS compatibility score, 1.0–10.0 in 0.5 increments |
-| `feedback` | string | Detailed Markdown feedback with strengths, gaps, and recommendations |
-| `benchmark_avg` | float \| null | Global average score across all Databricks submissions (null if no data yet) |
-| `benchmark_percentile` | int \| null | Percentage of past submissions this score beats (null if no data yet) |
-| `benchmark_total` | int \| null | Total number of ATS scores on record (null if no data yet) |
-
----
-
-### `POST /api/v1/fine-tune`
-
-Return a fully rewritten, ATS-optimised resume.
-
-**Request body**
-
-```json
-{
-  "resume_text": "Jane Doe\nSoftware Engineer...",
-  "jd_text": "We are looking for a Senior Python Engineer..."
-}
-```
-
-**Response `200 OK`**
-
-```json
-{
-  "optimized_resume": "# Jane Doe\n**Senior Python Engineer**\n\n## Summary\n..."
-}
-```
-
----
-
-### `POST /api/v1/cover-letter`
-
-Generate a personalised cover letter.
-
-**Request body**
-
-```json
-{
-  "resume_text": "Jane Doe\nSoftware Engineer...",
-  "jd_text": "We are looking for a Senior Python Engineer..."
-}
-```
-
-**Response `200 OK`**
-
-```json
-{
-  "cover_letter": "Dear Hiring Manager,\n\nI am writing to express my interest in..."
-}
-```
-
----
-
-### `POST /api/v1/job-analysis`
-
-Analyse a job posting for skills, keywords, and seniority signals.
-
-**Request body**
-
-```json
-{
-  "jd_text": "We are looking for a Senior Python Engineer with FastAPI experience..."
-}
-```
-
-**Response `200 OK`**
-
-```json
-{
-  "analysis": "## Job Analysis\n\n### Required Technical Skills\n- Python\n- FastAPI\n..."
-}
-```
-
----
-
-### `GET /api/v1/market-trends`
-
-Retrieve crowd-sourced market intelligence from all past submissions.
-
-**No request body required.**
-
-**Response `200 OK`**
-
-```json
-{
-  "total_submissions": 247,
-  "top_technical_skills": [
-    { "skill": "python", "count": 189 },
-    { "skill": "sql", "count": 134 }
-  ],
-  "top_soft_skills": [
-    { "skill": "communication", "count": 98 }
-  ],
-  "top_keywords": [
-    { "keyword": "agile", "count": 201 }
-  ],
-  "industry_breakdown": [
-    { "industry": "Technology", "count": 143 }
-  ],
-  "seniority_breakdown": [
-    { "seniority": "Senior", "count": 112 }
-  ],
-  "remote_breakdown": [
-    { "remote_type": "Hybrid", "count": 89 }
-  ],
-  "experience_distribution": [
-    { "seniority": "Senior", "avg_years": 5.2, "count": 112 }
-  ],
-  "skill_trends": [
-    {
-      "keyword": "python",
-      "current_count": 189,
-      "past_count": 140,
-      "change": 49,
-      "pct_change": 35.0,
-      "direction": "up"
-    }
-  ]
-}
-```
-
-> If Databricks is unreachable, all list fields return `[]` and `total_submissions` returns `0`. The endpoint never returns a 5xx error due to database unavailability.
-
----
-
-### Error Responses
-
-| Code | When |
-|---|---|
-| `422 Unprocessable Entity` | Required field missing or wrong type (automatic Pydantic validation) |
-| `500 Internal Server Error` | OpenAI API failure, rate limit, or unexpected exception |
-
-All 500 errors include a `detail` field with the error message:
-
-```json
-{
-  "detail": "OpenAI API error: rate limit exceeded"
-}
+https://careerforge-y7lm.onrender.com
 ```
 
 ---
@@ -376,7 +199,7 @@ All 500 errors include a `detail` field with the error message:
 ## 7. Repository Structure
 
 ```
-careerai-saas/
+CC_GrpProj/
 ├── .env.example                    # Template for environment variables
 ├── .gitignore
 ├── config.py                       # All config loaded from environment variables
@@ -438,7 +261,7 @@ Follow these steps exactly. Do not skip any step.
 
 ### Prerequisites
 
-- Python 3.10 or higher installed (`python --version`)
+- Python 3.11
 - Git installed
 - A text editor (VS Code recommended)
 - An OpenAI API key (get one at [platform.openai.com](https://platform.openai.com))
@@ -446,8 +269,8 @@ Follow these steps exactly. Do not skip any step.
 ### Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/careerai-saas.git
-cd careerai-saas
+git clone https://github.com/<your-username>/CC_GrpProj.git
+cd CC_GrpProj
 ```
 
 ### Step 2 — Create a virtual environment
@@ -505,7 +328,7 @@ SECRET_KEY=any-random-string-you-invent-here
 ### Step 5 — Run the development server
 
 ```bash
-uvicorn main:app --reload --port 8000
+python -m uvicorn main:app --reload --port 8000
 ```
 
 Expected output:
@@ -663,121 +486,7 @@ Then hit `http://localhost:8000/api/v1/market-trends`. You should see a JSON res
 
 ---
 
-## 11. Deploying to Render
-
-Render is a Platform-as-a-Service (PaaS) that hosts the app in the cloud and auto-deploys from GitHub.
-
-### Step 1 — Push your code to GitHub
-
-```bash
-# If this is a new repo:
-git init
-git add .
-git commit -m "Initial commit: CareerAI-as-a-Service"
-git branch -M main
-git remote add origin https://github.com/<your-username>/careerai-saas.git
-git push -u origin main
-
-# For subsequent pushes:
-git add .
-git commit -m "Describe what you changed"
-git push
-```
-
-### Step 2 — Create a Render account
-
-1. Go to [render.com](https://render.com)
-2. Click **Sign Up** → **Continue with GitHub**
-3. Authorise Render to access your repositories
-
-### Step 3 — Create a new Web Service
-
-1. Click **New +** → **Web Service**
-2. Click **Connect** next to your `careerai-saas` repository
-3. Fill in the configuration:
-
-| Field | Value |
-|---|---|
-| **Name** | `careerai-saas` |
-| **Region** | Singapore (closest to NTU; reduces latency) |
-| **Branch** | `main` |
-| **Runtime** | Python 3 |
-| **Build Command** | `pip install -r requirements.txt` |
-| **Start Command** | `python -m uvicorn main:app --host 0.0.0.0 --port $PORT` |
-| **Instance Type** | Free |
-
-### Step 4 — Add environment variables
-
-In the **Environment** tab, add each variable:
-
-| Key | Value |
-|---|---|
-| `OPENAI_API_KEY` | Your OpenAI API key |
-| `DATABRICKS_HOST` | Your Databricks hostname |
-| `DATABRICKS_TOKEN` | Your Databricks access token |
-| `DATABRICKS_HTTP_PATH` | Your warehouse HTTP path |
-| `DATABRICKS_CATALOG` | `main` |
-| `DATABRICKS_SCHEMA` | `careerai` |
-| `SECRET_KEY` | Click **Generate** — Render will create a secure random value |
-
-### Step 5 — Deploy
-
-Click **Create Web Service**. Render will:
-1. Clone your repository
-2. Run `pip install -r requirements.txt` (~2 minutes)
-3. Start the app with Uvicorn
-4. Assign a public URL: `https://careerai-saas.onrender.com`
-
-Watch the build log. A successful deployment ends with:
-```
-==> Your service is live 🎉
-```
-
-### Step 6 — Verify the live deployment
-
-| Check | URL | Expected result |
-|---|---|---|
-| Web UI | `https://careerai-saas.onrender.com` | Homepage loads |
-| API Docs | `https://careerai-saas.onrender.com/docs` | Swagger UI with 5 endpoints |
-| Market Trends | `https://careerai-saas.onrender.com/api/v1/market-trends` | JSON response |
-
-### Auto-deploy on push
-
-Every time you `git push` to the `main` branch, Render automatically rebuilds and redeploys. You never need to manually redeploy.
-
-### The `render.yaml` file
-
-The repository includes a `render.yaml` that documents the infrastructure as code:
-
-```yaml
-services:
-  - type: web
-    name: careerai-saas
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: DATABRICKS_HOST
-        sync: false
-      - key: DATABRICKS_TOKEN
-        sync: false
-      - key: DATABRICKS_HTTP_PATH
-        sync: false
-      - key: DATABRICKS_CATALOG
-        value: main
-      - key: DATABRICKS_SCHEMA
-        value: careerai
-      - key: SECRET_KEY
-        generateValue: true
-```
-
-`sync: false` means Render expects you to provide these values manually in the dashboard — they are not committed to the repository.
-
----
-
-## 12. Cloud Computing Concepts Demonstrated
+## 11. Cloud Computing Concepts Demonstrated
 
 This section maps project features to SC4052 module concepts for assignment marking.
 
@@ -825,7 +534,7 @@ As described in [Section 2](#2-the-dual-utility-design), every job analysis subm
 
 ---
 
-## 13. Architectural Decisions & Tradeoffs
+## 12. Architectural Decisions & Tradeoffs
 
 | Decision | Why | Tradeoff |
 |---|---|---|
@@ -840,77 +549,9 @@ As described in [Section 2](#2-the-dual-utility-design), every job analysis subm
 
 ---
 
-## 14. Testing the API
+## 13. Troubleshooting
 
-### Using the Swagger UI (easiest)
-
-1. Open `https://careerai-saas.onrender.com/docs`
-2. Click any endpoint
-3. Click **Try it out**
-4. Fill in the example values
-5. Click **Execute**
-6. The response appears inline
-
-### Using curl
-
-**ATS Score:**
-```bash
-curl -X POST https://careerai-saas.onrender.com/api/v1/ats-score \
-  -H "Content-Type: application/json" \
-  -d '{
-    "resume_text": "Jane Doe\nSoftware Engineer\n5 years Python, FastAPI, Docker, AWS",
-    "jd_text": "Senior Python Engineer needed. Must know FastAPI, Docker, CI/CD pipelines."
-  }'
-```
-
-**Job Analysis:**
-```bash
-curl -X POST https://careerai-saas.onrender.com/api/v1/job-analysis \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jd_text": "We are hiring a Data Scientist with experience in Python, SQL, and machine learning frameworks such as scikit-learn and PyTorch."
-  }'
-```
-
-**Market Trends:**
-```bash
-curl https://careerai-saas.onrender.com/api/v1/market-trends
-```
-
-### Using Python
-
-```python
-import requests
-
-BASE_URL = "https://careerai-saas.onrender.com/api/v1"
-
-resume = "Jane Doe\nSoftware Engineer with 5 years Python experience.\nSkills: FastAPI, Docker, PostgreSQL, AWS Lambda"
-jd = "Senior Software Engineer needed. Expertise in Python, FastAPI, and cloud infrastructure (AWS/GCP) required."
-
-# ATS Score
-response = requests.post(f"{BASE_URL}/ats-score", json={
-    "resume_text": resume,
-    "jd_text": jd
-})
-data = response.json()
-print(f"ATS Score: {data['score']}/10")
-if data.get('benchmark_percentile'):
-    print(f"You beat {data['benchmark_percentile']}% of past submissions")
-print(data['feedback'][:500])  # First 500 chars of feedback
-
-# Market Trends
-trends = requests.get(f"{BASE_URL}/market-trends").json()
-print(f"Total submissions: {trends['total_submissions']}")
-print("Top 5 technical skills:")
-for skill in trends['top_technical_skills'][:5]:
-    print(f"  {skill['skill']}: {skill['count']}")
-```
-
----
-
-## 15. Troubleshooting
-
-### The app takes 60 seconds to respond on the first request
+### The app takes 60-120 seconds to respond on the first request
 
 **Cause:** Render's free tier spins down idle instances. The first request after a period of inactivity cold-starts the server.  
 **Solution:** This is expected behaviour. Wait for the response. Subsequent requests will be fast.
@@ -950,43 +591,3 @@ pip install -r requirements.txt
 **Solution:** Check your usage at [platform.openai.com/usage](https://platform.openai.com/usage). Add credits if required. The free tier has a very low rate limit; the paid tier has significantly higher limits.
 
 ---
-
-## 16. Acceptance Criteria Checklist
-
-Use this checklist to verify your submission is complete before the deadline.
-
-### API Endpoints
-- [ ] `https://careerai-saas.onrender.com/docs` loads and shows all 5 API endpoints with their input/output schemas
-- [ ] `POST /api/v1/ats-score` returns a numeric score (1–10) and detailed Markdown feedback
-- [ ] `POST /api/v1/fine-tune` returns a rewritten resume in Markdown format
-- [ ] `POST /api/v1/cover-letter` returns a formatted cover letter in Markdown format
-- [ ] `POST /api/v1/job-analysis` returns structured job analysis output
-- [ ] `GET /api/v1/market-trends` returns keyword/skill data, or an empty list gracefully if Databricks is unreachable (never a 500 error)
-
-### Web Frontend
-- [ ] The root URL (`/`) serves a working web homepage
-- [ ] The upload page accepts a PDF resume and job description text
-- [ ] ATS Score, Optimise, Cover Letter, and Job Analysis features all work end-to-end in the browser
-- [ ] Market Trends / Dashboard page renders a chart of top skills
-- [ ] Each results page shows a collapsible "API Call" panel with the raw JSON request and response
-
-### Architecture
-- [ ] No global state variables anywhere in the codebase (no `resume_text_global`, no module-level mutable variables)
-- [ ] All secrets are in environment variables — no hardcoded API keys, tokens, or passwords in any file
-- [ ] All API routes have Pydantic request and response models
-- [ ] All service functions have `try/except` error handling
-- [ ] `render.yaml` is present and documents the infrastructure
-
-### Cloud Platform
-- [ ] Databricks Delta tables exist (`job_submissions`, `skill_counts`, `keyword_counts`, `ats_scores`)
-- [ ] Submitting a job analysis increments counts in Databricks (verify in Databricks SQL Editor)
-- [ ] ATS scores are recorded in the `ats_scores` table (verify in Databricks SQL Editor)
-- [ ] `skill_trends` in the market trends response shows direction (`up`, `down`, `stable`, or `new`)
-
-### Error Handling
-- [ ] Uploading a non-PDF file returns a user-friendly error message, not a crash
-- [ ] Calling an endpoint with a missing required field returns `422` with a clear error
-- [ ] The app starts successfully even with no Databricks credentials (degraded mode)
-
----
-
