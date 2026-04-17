@@ -62,7 +62,7 @@ No personally identifiable information is ever stored. Only aggregate signals (s
 | **Web UI** | `https://careerforge-y7lm.onrender.com` |
 | **Interactive API Docs (Swagger)** | `https://careerforge-y7lm.onrender.com/docs` |
 
-> **Note for markers:** The app is hosted on Render's free tier. If it has been idle for more than 15 minutes, the first request will take up to 60 seconds to wake the instance. Subsequent requests respond normally. This is expected behaviour on free-tier hosting and is documented as a known limitation in [Section 13](#13-architectural-decisions--tradeoffs).
+> **Note for markers:** The app is hosted on Render's free tier. If it has been idle for more than 15 minutes, the first request will take up to 60 seconds to wake the instance. Subsequent requests respond normally.
 
 ---
 
