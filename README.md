@@ -5,8 +5,7 @@
 
 ---
 > Authors:
-> Juannisa Putri Sunarya
-> Muhammad Wisnu Darmawan
+> Juannisa Putri Sunarya & Muhammad Wisnu Darmawan
 
 ## 1. Project Overview
 
